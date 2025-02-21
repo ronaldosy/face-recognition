@@ -10,13 +10,9 @@ For documentation check: https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetec
 
 
 The directory struture for this 
-src
- ├─data
- | |-feature_file
- |
- ├─images
- │ |-Name
- | |-Name
- │   
- ├─models
- | |-onnx_files
+src\
+ ├───data\
+ ├───images\
+ │   ├───Name\
+ │   └───Name\
+ └───Models
