@@ -21,7 +21,7 @@ class FaceRecognition :
         allign_face = self._recognizer.alignCrop(image, face)
         face_feature = self._recognizer.feature(allign_face)
         return face_feature
-
+    
     def get_match(self, feature1, feature2, dist_type):
         match_score = self._recognizer.match(feature1, feature2, dist_type)
         return match_score

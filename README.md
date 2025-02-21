@@ -8,3 +8,15 @@ For sample code check: https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetecto
 
 For documentation check: https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html and https://docs.opencv.org/4.x/da/d09/classcv_1_1FaceRecognizerSF.html
 
+
+The directory struture for this 
+src
+ ├─data
+ | |-feature_file
+ |
+ ├─images
+ │ |-Name
+ | |-Name
+ │   
+ ├─models
+ | |-onnx_files
