@@ -73,6 +73,8 @@ def main(cam_id:int = 0):
             _, cam_faces = detector.detect_face(frame)            
             
             if cam_faces is not None:
+                text_label = "Not Recognized"
+                text_color = (0,0,255)
                 for cam_face in cam_faces:
                     cam_feature = recognizer.get_feature(frame, cam_face[:-1])
                     coord = tuple(map(np.int32, cam_face[:-1]))
@@ -88,10 +90,13 @@ def main(cam_id:int = 0):
                                 cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (255,0,0), 2)
                                 cv2.putText(frame, "{}".format(label.capitalize()), (coord[0], coord[1] - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
                                 break
-                            else:                        
-                                cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (0,0,255), 2)
-                                cv2.putText(frame,"Not recognized", (coord[0], coord[1] - 10),
-                                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)                                                                                                                                                
+                            # else:                        
+                            #     cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (0,0,255), 2)
+                            #     cv2.putText(frame,"Not recognized", (coord[0], coord[1] - 10),
+                            #                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
+                        
+                                   
+                                                                                                                                                               
             else:
                 cv2.putText(frame, "No face detected" , (5,20),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
