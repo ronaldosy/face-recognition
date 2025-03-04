@@ -89,7 +89,7 @@ def main(cam_id:int = 0):
                             if cosine_score > cosine_threshold:                                                
                                 cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (255,0,0), 2)
                                 cv2.putText(frame, "{}".format(label.capitalize()), (coord[0], coord[1] - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
-                                break
+                                # break
                             # else:                        
                             #     cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (0,0,255), 2)
                             #     cv2.putText(frame,"Not recognized", (coord[0], coord[1] - 10),
