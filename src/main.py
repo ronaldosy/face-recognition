@@ -14,12 +14,13 @@ recognizer : onnx file can be downloaded from https://github.com/opencv/opencv_z
 
 # Get feature data from reference image, and stored into a picle file
 def save_ref_feature():
-    detector = FaceDetect(model_path='models/face_detection_yunet_2023mar_int8bq.onnx')
-    recognizer = FaceRecognition(model_path='models/face_recognition_sface_2021dec_int8bq.onnx')
+    work_dir = os.path.dirname(__file__)
+    detector = FaceDetect(model_path=os.path.join(work_dir, "models/face_detection_yunet_2023mar_int8bq.onnx"))
+    recognizer = FaceRecognition(model_path=os.path.join(work_dir, "models/face_recognition_sface_2021dec_int8bq.onnx"))
+    image_dir = os.path.join(work_dir, "images")
     feature_data = dict()        
-    for (root, dirs, files) in os.walk('images/', topdown=True):
-        print(root)
-        for file in files:
+    for (root, dirs, files) in os.walk(image_dir, topdown=True):        
+        for file in files:            
             name = os.path.basename(root).lower().replace(" ", "_")
             image_file = os.path.join(root, file)
             img = cv2.imread(image_file)
@@ -32,8 +33,8 @@ def save_ref_feature():
             else:
                 feature_data.update({name: "No face found"})
                 print("No face found for", name)
-    
-    data_file = open('data/feature_data', 'wb')
+        
+    data_file = open(os.path.join(work_dir, "data/feature_data"), 'wb')
     pickle.dump(feature_data, data_file)
     data_file.close()
 
@@ -44,20 +45,21 @@ def main(cam_id:int = 0):
     if cap.isOpened(): # Check if the camera available or not
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Get the frame width
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # Get the frame height
-        detector = FaceDetect(model_path='models/face_detection_yunet_2023mar_int8bq.onnx')    
-        recognizer = FaceRecognition(model_path='models/face_recognition_sface_2021dec_int8bq.onnx')
+        work_dir = os.path.dirname(__file__)
+        detector = FaceDetect(model_path=os.path.join(work_dir, "models/face_detection_yunet_2023mar_int8bq.onnx"))    
+        recognizer = FaceRecognition(model_path=os.path.join(work_dir, "models/face_recognition_sface_2021dec_int8bq.onnx"))
 
         # Read feature data from pickle file and load into dict
-        feature_data = dict()
+        feature_data = {}
         try:
-            with open('data/feature_data','rb') as data_file:
+            with open(os.path.join(work_dir, "data/feature_data"),'rb') as data_file:
                 feature_data = pickle.load(data_file)
-                data_file.close()            
+                data_file.close()                
         except:
-            feature_data.update({0:0})        
+            print("Feature data not found")
 
         detector.set_input_size([w, h])
-
+        
         '''
         Check the following documentation and sample for distance type:
         Docs: https://docs.opencv.org/4.x/da/d09/classcv_1_1FaceRecognizerSF.html#a6501674e36c7283491db853ed6599b58
@@ -67,34 +69,28 @@ def main(cam_id:int = 0):
         # norml2_threshold = 1.128 #  Use this if the distance type FR_NORM_L2 (dist_type = 1)
 
         while True:
-            ret , frame = cap.read()
-            frame = cv2.flip(frame, 1) # For better reconition we need to flip the frame first
-
-            _, cam_faces = detector.detect_face(frame)            
-            
-            if cam_faces is not None:
-                text_label = "Not Recognized"
-                text_color = (0,0,255)
+            _, frame = cap.read()            
+            frame = cv2.flip(frame, 1) # For better reconition we need to flip the frame first            
+            _, cam_faces = detector.detect_face(frame)                        
+            if cam_faces is not None:                                
                 for cam_face in cam_faces:
+                    text_label = "Not Recognized" 
+                    display_color = (0,0,255)           
                     cam_feature = recognizer.get_feature(frame, cam_face[:-1])
-                    coord = tuple(map(np.int32, cam_face[:-1]))
-                    for (label, img_feature) in feature_data.items():                                        
-                        if label == 0:
-                            cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (0,0,255), 2)
-                            cv2.putText(frame,"No data loaded", (coord[0], coord[1] - 10),
-                                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)                                                    
-                        else:
+                    coord = tuple(map(np.int32, cam_face[:-1]))                    
+                    if feature_data:                        
+                        for (label, img_feature) in feature_data.items():                        
                             cosine_score = recognizer.get_match(cam_feature, img_feature, 0) # Use FR_COSINE as distance type
 
                             if cosine_score > cosine_threshold:                                                
-                                cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (255,0,0), 2)
-                                cv2.putText(frame, "{}".format(label.capitalize()), (coord[0], coord[1] - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
-                                # break
-                            # else:                        
-                            #     cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), (0,0,255), 2)
-                            #     cv2.putText(frame,"Not recognized", (coord[0], coord[1] - 10),
-                            #                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
-                        
+                                text_label = label.capitalize()                                
+                                display_color = (255,0,0)                                
+                    else:
+                        text_label = "No feature data found"                        
+
+                    cv2.rectangle(frame, (coord[0], coord[1]), (coord[0] + coord[2], coord[1] + coord[3]), display_color, 2)
+                    cv2.putText(frame, "{}".format(text_label), 
+                                        (coord[0], coord[1] - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.5, display_color, 2)
                                    
                                                                                                                                                                
             else:
